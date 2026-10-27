@@ -19,7 +19,7 @@ appears without his stated standard error beside it.
 published — his worked multiplier values, his Table 9 adjustments, and nine
 measured storage lives. Run it to print the table:
 
-    PYTHONPATH=$PWD .venv/bin/python -m src.physics.steele_agreement
+    .venv\Scripts\python.exe -m src.physics.steele_agreement
 
 Damage readings ship **uncorrected**. The classifier errs in both directions,
 which compresses every reading toward the middle of the range — a clean tray
@@ -52,8 +52,13 @@ for how to run it and reach it from a phone.
 
 ## Running the tests
 
-    python3 -m venv .venv
-    .venv/bin/pip install pytest
-    .venv/bin/python -m pytest tests/ -q
+    py -3.13 -m venv .venv
+    .venv\Scripts\python.exe -m pip install -r requirements.txt
+    .venv\Scripts\python.exe -m pytest tests/ -q
+    node --test tests/test_i18n_js.cjs
+
+Run these from `stored-grain/`. On macOS/Linux, create the environment with
+`python3 -m venv .venv` and use `.venv/bin/python` in place of
+`.venv\Scripts\python.exe`.
 
 Planning documents live one level up in `../`.
