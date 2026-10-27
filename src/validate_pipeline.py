@@ -34,7 +34,7 @@ LEVELS = (0.0, 2.0, 5.0, 10.0, 20.0, 40.0)
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--grainset", default="data/raw/grainset/maize")
-    p.add_argument("--localiser", default="models/localiser.pt")
+    p.add_argument("--localiser", default="models/localiser-real.pt")
     p.add_argument("--classifier", default="models/classifier.session.pt")
     p.add_argument("--out", default="data/interim/validation")
     p.add_argument("--kernels", type=int, default=200)

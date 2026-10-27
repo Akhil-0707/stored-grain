@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient
 from src.app.server import create_app
 
 TRAY = Path("data/interim/validation/lot_10.png")
-MODELS = (Path("models/localiser.pt"), Path("models/classifier.session.pt"))
+MODELS = (Path("models/localiser-real.pt"), Path("models/classifier.session.pt"))
 
 pytestmark = [
     pytest.mark.slow,
