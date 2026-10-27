@@ -55,7 +55,9 @@ def decode(data: bytes) -> Image.Image:
     except Image.DecompressionBombError as exc:
         raise TooManyPixels(f"the photograph decodes too large: {exc}") from exc
     except (UnidentifiedImageError, OSError) as exc:
-        raise NotAnImage(f"could not decode the upload as an image: {exc}") from exc
+        # The decoder's own message names internal objects; it stays in the
+        # chained exception for the log and out of the reply.
+        raise NotAnImage("could not decode the upload as an image") from exc
     return ImageOps.exif_transpose(image).convert("RGB")
 
 

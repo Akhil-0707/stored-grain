@@ -11,10 +11,11 @@
   var listeners = [];
   var englishFallback = {
     "confirm.clear_session": "Clear all measured lots from this session?",
+    "confirm.remove_lot": "Remove {lot} from this session?",
     "error.not_image": "Choose a PNG or JPEG image.",
     "error.no_kernels": "No kernels were detected in that image.",
     "error.server_request": "The measurement server could not process that request.",
-    "error.photo_too_large": "Choose a photo smaller than 10 MB.",
+    "error.photo_too_large": "Choose a photo smaller than 32 MB.",
     "error.too_many": "Too many requests. Try again shortly.",
     "error.server_unavailable": "The measurement server is unavailable.",
     "error.rejected": "The server rejected that request ({status}).",

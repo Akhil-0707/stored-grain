@@ -239,7 +239,7 @@
     return '<li class="rung" data-rank="' + esc(rank) + '" data-tied="' + (tied ? "true" : "false") + '">' +
       '<span class="rung-rank num">' + esc(rank) + "</span>" +
       '<span class="rung-lot">' + lot + "</span>" +
-      '<span class="rung-bar"><span class="rung-fill" style="--fill: ' + fillPercent(entry, maxRate) + '%"></span></span>' +
+      '<span class="rung-bar"><span class="rung-fill" data-fill="' + fillPercent(entry, maxRate) + '"></span></span>' +
       '<span class="rung-value num">' + fixed(entry.damage_mass_pct, 2) + "%</span>" +
       '<span class="rung-rate"><span>' + esc(t("ranking.rate")) + '</span> <span class="num">' + fixed(entry.degradation_rate, 4) + "</span></span>" +
       '<button type="button" class="rung-remove" data-lot="' + lot + '" aria-label="' + remove + '">' + remove + "</button>" +
@@ -283,6 +283,12 @@
     }).join("");
 
     rankingBody.innerHTML = '<ol class="ladder">' + items + "</ol>";
+
+    // Set through the CSSOM, not a style attribute in the markup: the
+    // Content-Security-Policy refuses inline style attributes.
+    rankingBody.querySelectorAll(".rung-fill").forEach(function (fill) {
+      fill.style.setProperty("--fill", fill.getAttribute("data-fill") + "%");
+    });
   }
 
   // -------------------------------------------------------- reading markup
@@ -577,6 +583,7 @@
     if (!button || busy) return;
 
     var lotId = button.getAttribute("data-lot");
+    if (!window.confirm(t("confirm.remove_lot", { lot: lotId }))) return;
     setBusy(true);
     setTranslatedStatus("working", "status.removing", { lot: lotId });
 

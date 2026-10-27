@@ -3,18 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#103a2b">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0e0a">
 <meta name="description" content="Measure mechanical damage in shelled maize from a photograph, and rank storage lots by how fast they are degrading." data-i18n-content="meta.description">
 <title data-i18n="meta.title">Maize field assay</title>
-<link rel="stylesheet" href="/static/app.css?v=20260819-ui2">
+<script src="/static/theme.js?v=20261020-ui4"></script>
+<link rel="stylesheet" href="/static/app.css?v=20261020-ui4">
 </head>
-<body>
+<body data-s1="active" data-s2="idle" data-s3="idle">
+
+<canvas id="field" aria-hidden="true"></canvas>
 
 <a class="skip" href="#capture" data-i18n="skip.capture">Skip to capture</a>
 
 <div class="topbar">
-  <p class="brand"><span class="brand-mark" aria-hidden="true"></span><span data-i18n="topbar.brand">Grain field assay</span></p>
+  <p class="brand"><span class="brand-mark" aria-hidden="true"><span></span></span><span data-i18n="topbar.brand">Grain field assay</span></p>
   <div class="topbar-actions">
     <p class="build-state"><span aria-hidden="true"></span><span data-i18n="topbar.prototype">Research prototype</span></p>
     <div class="language-switcher" role="group" aria-label="Language" data-i18n-aria-label="language.aria">
@@ -22,6 +25,10 @@
       <button type="button" data-locale="hi" aria-pressed="false">हिन्दी</button>
       <button type="button" data-locale="te" aria-pressed="false">తెలుగు</button>
     </div>
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light or dark theme" data-i18n-aria-label="theme.toggle">
+      <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6Z"/></svg>
+    </button>
   </div>
 </div>
 
@@ -38,15 +45,15 @@
   </div>
 
   <ol class="process-rail" aria-label="Measurement flow" data-i18n-aria-label="flow.aria">
-    <li>
+    <li class="stage stage-1">
       <span class="stage-mark" aria-hidden="true"><span></span></span>
       <span class="stage-copy"><b data-i18n="flow.capture.title">Capture sample</b><small data-i18n="flow.capture.detail">One tray photograph</small></span>
     </li>
-    <li>
+    <li class="stage stage-2">
       <span class="stage-mark" aria-hidden="true"><span></span></span>
       <span class="stage-copy"><b data-i18n="flow.measure.title">Measure kernels</b><small data-i18n="flow.measure.detail">Damage by weight</small></span>
     </li>
-    <li>
+    <li class="stage stage-3">
       <span class="stage-mark" aria-hidden="true"><span></span></span>
       <span class="stage-copy"><b data-i18n="flow.rank.title">Rank lots</b><small data-i18n="flow.rank.detail">Fastest degrading first</small></span>
     </li>
@@ -64,7 +71,7 @@
     <form id="capture-form" novalidate>
       <div class="field">
         <label for="f-lot" data-i18n="field.lot">Lot name</label>
-        <input id="f-lot" name="lot_id" required autocomplete="off"
+        <input id="f-lot" name="lot_id" required autocomplete="off" maxlength="80"
                placeholder="brand A, bag 2" data-i18n-placeholder="field.lot.placeholder">
       </div>
       <div class="field-row">
@@ -90,13 +97,13 @@
         <input id="f-photo" name="photo" type="file" accept="image/*"
                capture="environment" required>
         <label class="dropzone" id="dropzone" for="f-photo" data-empty="true">
-          <span class="dropzone-icon" aria-hidden="true"></span>
+          <span class="dropzone-icon" aria-hidden="true"><span></span></span>
           <span class="dropzone-primary" data-i18n="field.photo.primary">Photograph tray</span>
           <span class="dropzone-secondary" data-i18n="field.photo.secondary">or drop a JPEG / PNG here</span>
           <span class="dropzone-filename" id="photo-filename"></span>
         </label>
       </div>
-      <button type="submit" id="measure"><span data-i18n="action.measure">Measure this lot</span><span aria-hidden="true">→</span></button>
+      <button type="submit" id="measure"><span data-i18n="action.measure">Measure this lot</span><span class="arrow" aria-hidden="true">→</span></button>
     </form>
     <p id="status" class="status" role="status" aria-live="polite"></p>
   </section>
@@ -136,7 +143,8 @@
   </p>
 </footer>
 
-<script src="/static/i18n.js?v=20260819-ui2"></script>
-<script src="/static/app.js?v=20260819-ui2"></script>
+<script src="/static/i18n.js?v=20261020-ui4"></script>
+<script src="/static/app.js?v=20261020-ui4"></script>
+<script src="/static/ui.js?v=20261020-ui4" defer></script>
 </body>
 </html>

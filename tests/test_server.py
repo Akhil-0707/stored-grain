@@ -7,6 +7,7 @@ per test would make them useless to run.
 
 import csv
 import io
+import re
 
 import numpy as np
 import pytest
@@ -213,15 +214,24 @@ def test_page_exposes_accessible_non_persistent_language_choices(client):
     assert 'data-locale="te"' in response.text
     assert "हिन्दी" in response.text
     assert "తెలుగు" in response.text
-    assert 'src="/static/i18n.js?v=20260819-ui2"' in response.text
-    assert "localStorage" not in response.text
+    assert 'src="/static/i18n.js?v=20261020-ui4"' in response.text
+    # Language is never persisted. The only stored preference is the colour
+    # theme, under its own key.
+    scripts = response.text + client.get("/static/theme.js").text
+    stored_keys = re.findall(r'localStorage\.(?:get|set)Item\("([^"]+)"', scripts)
+    assert set(stored_keys) <= {"grain-theme"}
+    i18n_source = client.get("/static/i18n.js").text
+    assert "localStorage" not in i18n_source
+    assert "sessionStorage" not in i18n_source
 
 
 def test_page_cache_busts_frontend_assets_after_ui_updates(client):
     response = client.get("/")
 
-    assert 'href="/static/app.css?v=20260819-ui2"' in response.text
-    assert 'src="/static/app.js?v=20260819-ui2"' in response.text
+    assert 'src="/static/theme.js?v=20261020-ui4"' in response.text
+    assert 'href="/static/app.css?v=20261020-ui4"' in response.text
+    assert 'src="/static/app.js?v=20261020-ui4"' in response.text
+    assert 'src="/static/ui.js?v=20261020-ui4"' in response.text
 
 
 def test_language_choices_share_the_right_side_utility_rail(client):
@@ -543,6 +553,52 @@ def test_a_rate_limited_caller_keeps_the_lots_they_already_measured():
     assert [r["lot_id"] for r in client.get("/api/lots").json()["lots"]] == ["lot_5.0"]
 
 
+@pytest.mark.parametrize("field", ["temperature_c", "moisture_pct_wb"])
+@pytest.mark.parametrize("value", ["nan", "inf", "-inf"])
+def test_a_non_finite_reading_is_refused_and_the_session_survives(client, field, value):
+    # NaN used to be stored, then fail to serialise, and every later request
+    # for the session returned 500 with it.
+    data = {"lot_id": "lot_5.0", "temperature_c": "20", "moisture_pct_wb": "14"}
+    data[field] = value
+    response = client.post(
+        "/api/lots", files={"photo": ("p.png", _photo(), "image/png")}, data=data
+    )
+    assert response.status_code == 422
+    listing = client.get("/api/lots")
+    assert listing.status_code == 200
+    assert listing.json()["lots"] == []
+
+
+def test_an_overlong_lot_name_is_refused(client):
+    from src.app.server import MAX_LOT_ID_CHARS
+
+    assert _upload(client, "x" * MAX_LOT_ID_CHARS + "_5.0").status_code == 422
+    assert _upload(client, "x" * (MAX_LOT_ID_CHARS - 4) + "_5.0").status_code == 201
+
+
+def test_a_blank_lot_name_is_refused(client):
+    assert _upload(client, "   ").status_code == 422
+
+
+def test_a_lot_named_with_a_slash_can_be_shown_and_removed(client):
+    # "A/2" is how a bag is often labelled. The page encodes the slash; the
+    # route has to accept it decoded or the lot can never be removed.
+    assert _upload(client, "A/2_5.0").status_code == 201
+    assert client.get("/api/lots/A%2F2_5.0/overlay.png").status_code == 200
+    assert client.delete("/api/lots/A%2F2_5.0").status_code == 204
+    assert client.get("/api/lots").json()["lots"] == []
+
+
+def test_a_refused_upload_does_not_describe_the_server_s_internals(client):
+    response = client.post(
+        "/api/lots",
+        files={"photo": ("notes.txt", b"not a photograph", "text/plain")},
+        data={"lot_id": "lot_5.0", "temperature_c": "20", "moisture_pct_wb": "14"},
+    )
+    assert response.status_code == 415
+    assert "BytesIO" not in response.json()["detail"]
+
+
 def test_reading_the_ranking_is_not_rate_limited():
     # Only inference is expensive. Throttling reads would punish the page for
     # refreshing itself.
@@ -567,3 +623,58 @@ def test_the_visible_upload_surface_actually_opens_the_file_picker(client):
     dropzone = page[page.index('class="dropzone"') - 40 : page.index('class="dropzone"') + 120]
     assert dropzone.lstrip().startswith("<label") or "<label" in dropzone
     assert 'for="f-photo"' in dropzone
+
+
+# --- Headers, docs and error pages ------------------------------------------
+
+@pytest.mark.parametrize("path", ["/", "/api/lots", "/static/app.js"])
+def test_every_response_carries_the_security_headers(client, path):
+    headers = client.get(path).headers
+    assert "frame-ancestors 'none'" in headers["content-security-policy"]
+    assert "script-src 'self'" in headers["content-security-policy"]
+    assert headers["x-content-type-options"] == "nosniff"
+    assert headers["x-frame-options"] == "DENY"
+    assert headers["referrer-policy"] == "no-referrer"
+
+
+def test_the_page_has_no_inline_script_or_style_the_policy_would_block(client):
+    # script-src and style-src are 'self' only: an inline block or attribute
+    # would be silently refused by the browser and the page would break.
+    for path in ["/", "/static/404.html"]:
+        page = client.get(path).text
+        assert re.search(r"<script(?![^>]*\bsrc=)[^>]*>", page) is None
+        assert " style=" not in page
+    assert "style=" not in client.get("/static/app.js").text
+
+
+def test_plain_http_gets_no_hsts_and_no_secure_cookie(client):
+    # On a LAN address the app is plain HTTP; a Secure cookie would never come
+    # back and every request would start a new session.
+    response = client.get("/api/lots")
+    assert "strict-transport-security" not in response.headers
+    assert "secure" not in response.headers["set-cookie"].lower()
+
+
+def test_https_gets_hsts_and_a_secure_cookie():
+    client = TestClient(_app(), base_url="https://testserver")
+    response = client.get("/api/lots")
+    assert response.headers["strict-transport-security"].startswith("max-age=")
+    assert "secure" in response.headers["set-cookie"].lower()
+
+
+@pytest.mark.parametrize("path", ["/docs", "/redoc", "/openapi.json"])
+def test_the_generated_api_docs_are_not_published(client, path):
+    assert client.get(path).status_code == 404
+
+
+def test_a_missing_page_is_a_friendly_html_404(client):
+    response = client.get("/no-such-page")
+    assert response.status_code == 404
+    assert "text/html" in response.headers["content-type"]
+    assert 'href="/"' in response.text
+
+
+def test_a_missing_api_route_stays_json(client):
+    response = client.get("/api/no-such-thing")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not Found"}

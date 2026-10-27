@@ -13,14 +13,17 @@ can inject a fake and never touch the models at all.
 from __future__ import annotations
 
 import io
+import math
 import os
 import threading
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.app.images import NotAnImage, TooManyPixels, decode, to_working_scale
 from src.app.i18n import describe_message, normalize_locale
@@ -39,6 +42,28 @@ COOKIE = "session_id"
 #: default because any client can set that header; turn it on only when this
 #: process sits behind a proxy that overwrites it, such as a Cloudflare tunnel.
 TRUST_FORWARDED_FOR = os.environ.get("TRUST_FORWARDED_FOR") == "1"
+
+#: Longest lot name accepted. A name is a label on a bag, and it is repeated in
+#: every row of the CSV and PDF, so an unbounded one bloats both reports.
+MAX_LOT_ID_CHARS = 80
+
+#: Sent with every response. The page loads nothing from anywhere else, so the
+#: policy can be strict: no inline script, no framing, no foreign origins.
+#: `blob:` is for the local preview of the photograph being measured.
+SECURITY_HEADERS = {
+    "Content-Security-Policy": (
+        "default-src 'self'; script-src 'self'; style-src 'self'; "
+        "img-src 'self' blob:; connect-src 'self'; font-src 'self'; "
+        "object-src 'none'; base-uri 'none'; form-action 'self'; "
+        "frame-ancestors 'none'"
+    ),
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+}
+
+#: Only meaningful over HTTPS, where a browser will honour it.
+HSTS = "max-age=31536000; includeSubDomains"
 
 
 def serialise(reading: LotReading) -> dict:
@@ -88,11 +113,34 @@ def create_app(
     registry: SessionRegistry | None = None,
     limiter: RateLimiter | None = None,
 ):
-    app = FastAPI(title="Maize damage capture")
+    # The generated API docs are off: they are a map of every endpoint for
+    # anyone who finds the URL, and the page is the only intended client.
+    app = FastAPI(
+        title="Maize damage capture", docs_url=None, redoc_url=None, openapi_url=None
+    )
     registry = registry if registry is not None else SessionRegistry()
     limiter = limiter if limiter is not None else RateLimiter()
 
     state = {"pipeline": None}
+
+    @app.middleware("http")
+    async def security_headers(request: Request, call_next):
+        response = await call_next(request)
+        response.headers.update(SECURITY_HEADERS)
+        if request.url.scheme == "https":
+            response.headers["Strict-Transport-Security"] = HSTS
+        return response
+
+    @app.exception_handler(StarletteHTTPException)
+    async def not_found_page(request: Request, exc: StarletteHTTPException):
+        """A page for people, JSON for the API.
+
+        A mistyped address in a browser should land somewhere with a way back,
+        not on a bare JSON error. API callers keep the JSON they parse.
+        """
+        if exc.status_code == 404 and not request.url.path.startswith("/api/"):
+            return FileResponse(STATIC / "404.html", status_code=404)
+        return await http_exception_handler(request, exc)
 
     # One set of weights and one Metal context, so inference is serialised
     # across every visitor. Sessions isolate what people see, not what the
@@ -117,6 +165,9 @@ def create_app(
             session_id,
             httponly=True,
             samesite="lax",
+            # Secure only over HTTPS: on a LAN address the app is plain HTTP,
+            # and a Secure cookie would never be sent back.
+            secure=request.url.scheme == "https",
             max_age=int(registry.idle_timeout_s),
             path="/",
         )
@@ -152,6 +203,21 @@ def create_app(
                 status_code=429,
                 detail="Too many measurements. Wait a moment and try again.",
                 headers={"Retry-After": str(max(1, int(wait) + 1))},
+            )
+
+        # Checked here rather than left to the page: a NaN reading is stored,
+        # then cannot be serialised, and every later request for the session
+        # fails with it.
+        if not lot_id.strip():
+            raise HTTPException(status_code=422, detail="the lot name is empty")
+        if len(lot_id) > MAX_LOT_ID_CHARS:
+            raise HTTPException(
+                status_code=422,
+                detail=f"the lot name is longer than {MAX_LOT_ID_CHARS} characters",
+            )
+        if not (math.isfinite(temperature_c) and math.isfinite(moisture_pct_wb)):
+            raise HTTPException(
+                status_code=422, detail="temperature and moisture must be numbers"
             )
 
         try:
@@ -239,13 +305,15 @@ def create_app(
             },
         )
 
-    @app.get("/api/lots/{lot_id}/overlay.png")
+    # `:path` so a lot named "A/2" still has an address: the page sends the
+    # slash encoded, and the router sees it decoded.
+    @app.get("/api/lots/{lot_id:path}/overlay.png")
     def overlay(lot_id: str, session: Session = Depends(visitor)):
         if lot_id not in session.overlays:
             raise HTTPException(status_code=404, detail=f"no lot {lot_id!r}")
         return Response(content=session.overlays[lot_id], media_type="image/png")
 
-    @app.delete("/api/lots/{lot_id}", status_code=204)
+    @app.delete("/api/lots/{lot_id:path}", status_code=204)
     def delete_lot(lot_id: str, session: Session = Depends(visitor)):
         if not session.store.remove(lot_id):
             raise HTTPException(status_code=404, detail=f"no lot {lot_id!r}")
