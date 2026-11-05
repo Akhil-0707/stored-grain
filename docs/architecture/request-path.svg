@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 1016" width="760" height="1016" role="img" aria-label="One photo's path: browser, server, then inside the pipeline the U-Net finds kernels, a filter drops debris and checks framing, ResNet-50 classifies each kernel, the mapping layer turns counts into damage by weight, Steele's model gives a degradation rate, and lots are ranked with ties. Sessions, overlay and reports send the result back to the browser.">
+  <title>One photo through stored-grain</title>
+  <style>
+    text { font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    .bg { fill: #f3efe3; }
+    .box { fill: #fffcf4; stroke: rgba(28, 35, 24, 0.30); stroke-width: 1.2; }
+    .flowbox { fill: #f3e6c2; stroke: #9a6a00; stroke-width: 1.2; }
+    .weights { fill: #fffcf4; stroke: #2f7a45; stroke-width: 1.4; stroke-dasharray: 5 4; }
+    .refuse { fill: #fffcf4; stroke: #b3402a; stroke-width: 1.4; }
+    .group { fill: none; stroke: #9a6a00; stroke-width: 1.2; stroke-dasharray: 2 5; }
+    .grouplabel { fill: #9a6a00; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12px; font-weight: 600; }
+    .t { fill: #1c2318; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12.5px; font-weight: 600; }
+    .tb { fill: #1c2318; font-size: 13px; font-weight: 600; }
+    .s { fill: #59634f; font-size: 11.5px; }
+    .lbl { fill: #9a6a00; font-size: 11.5px; font-weight: 600; }
+    .note { fill: #59634f; font-size: 11.5px; font-style: italic; }
+    .flow { stroke: #9a6a00; stroke-width: 2; fill: none; }
+    .train { stroke: #2f7a45; stroke-width: 1.6; fill: none; }
+    .exc { stroke: #b3402a; stroke-width: 1.6; stroke-dasharray: 6 4; fill: none; }
+    .side { stroke: #59634f; stroke-width: 1.3; stroke-dasharray: 3 3; fill: none; }
+  </style>
+  <defs>
+    <marker id="hf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9a6a00"/></marker>
+    <marker id="ht" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2f7a45"/></marker>
+    <marker id="he" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#b3402a"/></marker>
+    <marker id="hs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#59634f"/></marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="760" height="1016" rx="14"/>
+
+  <rect class="group" x="150" y="232" width="406" height="594" rx="12"/>
+  <text class="grouplabel" x="166" y="254">src/pipeline.py</text>
+  <text class="grouplabel" x="540" y="254" text-anchor="end">Pipeline.analyse()</text>
+
+  <rect class="flowbox" x="170" y="16" width="360" height="56" rx="9"/>
+  <text class="tb" x="350" y="40" text-anchor="middle">Browser</text>
+  <text class="s" x="350" y="59" text-anchor="middle">src/app/static: app.js · i18n.js · ui.js</text>
+
+  <rect class="box" x="170" y="118" width="360" height="64" rx="9"/>
+  <text class="t" x="350" y="143" text-anchor="middle">app/server.py · POST /api/lots</text>
+  <text class="s" x="350" y="164" text-anchor="middle">rate limit · input checks · images.py rotates and shrinks</text>
+
+  <rect class="box" x="170" y="266" width="360" height="58" rx="9"/>
+  <text class="t" x="350" y="290" text-anchor="middle">vision/localise.py · U-Net</text>
+  <text class="s" x="350" y="310" text-anchor="middle">each pixel → card, interior or border; then watershed</text>
+
+  <rect class="box" x="170" y="362" width="360" height="58" rx="9"/>
+  <text class="tb" x="350" y="386" text-anchor="middle">Debris filter + framing check</text>
+  <text class="s" x="350" y="406" text-anchor="middle">drop blobs under 15% of median · kernel 0.020–0.745% of frame</text>
+
+  <rect class="box" x="170" y="458" width="360" height="58" rx="9"/>
+  <text class="tb" x="350" y="482" text-anchor="middle">ResNet-50 classifier</text>
+  <text class="s" x="350" y="502" text-anchor="middle">one 224-px crop per kernel → one of 9 classes</text>
+
+  <rect class="box" x="170" y="554" width="360" height="58" rx="9"/>
+  <text class="t" x="350" y="578" text-anchor="middle">mapping/classes.py · measure()</text>
+  <text class="s" x="350" y="598" text-anchor="middle">mechanical damage only · a fragment weighs 0.367 of a kernel</text>
+
+  <rect class="box" x="170" y="650" width="360" height="58" rx="9"/>
+  <text class="t" x="350" y="674" text-anchor="middle">physics/deterioration.py · assess()</text>
+  <text class="s" x="350" y="694" text-anchor="middle">rate = 1 / (MM·MT·MD) · days only inside Steele's ranges</text>
+
+  <rect class="box" x="170" y="746" width="360" height="58" rx="9"/>
+  <text class="t" x="350" y="770" text-anchor="middle">rank_lots() + measurement/sampling.py</text>
+  <text class="s" x="350" y="790" text-anchor="middle">fastest-degrading first · tie when the gap &lt; 1.96·√2·SE</text>
+
+  <rect class="box" x="170" y="868" width="360" height="58" rx="9"/>
+  <text class="t" x="350" y="892" text-anchor="middle">app/ sessions · overlay.py · reports.py</text>
+  <text class="s" x="350" y="912" text-anchor="middle">per-visitor store · red/green overlay · CSV and PDF</text>
+
+  <rect class="flowbox" x="170" y="962" width="360" height="44" rx="9"/>
+  <text class="tb" x="350" y="989" text-anchor="middle">Browser shows the reading and the ranking</text>
+
+  <line class="flow" x1="350" y1="72" x2="350" y2="116" marker-end="url(#hf)"/>
+  <text class="lbl" x="362" y="99">photo · lot name · °C · moisture %</text>
+  <line class="flow" x1="350" y1="182" x2="350" y2="264" marker-end="url(#hf)"/>
+  <text class="lbl" x="362" y="214">image, 1391 px long edge</text>
+  <line class="flow" x1="350" y1="324" x2="350" y2="360" marker-end="url(#hf)"/>
+  <text class="lbl" x="362" y="346">instance map</text>
+  <line class="flow" x1="350" y1="420" x2="350" y2="456" marker-end="url(#hf)"/>
+  <text class="lbl" x="362" y="442">kernels kept</text>
+  <line class="flow" x1="350" y1="516" x2="350" y2="552" marker-end="url(#hf)"/>
+  <text class="lbl" x="362" y="538">class counts</text>
+  <line class="flow" x1="350" y1="612" x2="350" y2="648" marker-end="url(#hf)"/>
+  <text class="lbl" x="362" y="634">damage % by weight</text>
+  <line class="flow" x1="350" y1="708" x2="350" y2="744" marker-end="url(#hf)"/>
+  <text class="lbl" x="362" y="730">rate, plus days ± 11.2%</text>
+  <line class="flow" x1="350" y1="804" x2="350" y2="866" marker-end="url(#hf)"/>
+  <text class="lbl" x="362" y="850">ranked lots, ties marked</text>
+  <line class="flow" x1="350" y1="926" x2="350" y2="960" marker-end="url(#hf)"/>
+  <text class="lbl" x="362" y="947">JSON reading + overlay PNG</text>
+
+  <rect class="weights" x="590" y="266" width="160" height="58" rx="9"/>
+  <text class="t" x="670" y="290" text-anchor="middle">localiser-bg2.pt</text>
+  <text class="s" x="670" y="310" text-anchor="middle">U-Net · 7.8 M params</text>
+  <line class="train" x1="590" y1="295" x2="533" y2="295" marker-end="url(#ht)"/>
+
+  <rect class="weights" x="590" y="458" width="160" height="58" rx="9"/>
+  <text class="t" x="670" y="482" text-anchor="middle">classifier-real2.final.pt</text>
+  <text class="s" x="670" y="502" text-anchor="middle">ResNet-50 · 23.5 M params</text>
+  <line class="train" x1="590" y1="487" x2="533" y2="487" marker-end="url(#ht)"/>
+  <text class="note" x="670" y="536" text-anchor="middle">trained offline (training.svg)</text>
+
+  <line class="exc" x1="530" y1="391" x2="587" y2="391" marker-end="url(#he)"/>
+  <rect class="refuse" x="590" y="362" width="160" height="58" rx="9"/>
+  <text class="tb" x="670" y="386" text-anchor="middle">Refused · HTTP 422</text>
+  <text class="s" x="670" y="406" text-anchor="middle">"move closer / further away"</text>
+
+  <line class="side" x1="170" y1="583" x2="141" y2="583" marker-end="url(#hs)"/>
+  <rect class="box" x="8" y="554" width="130" height="58" rx="9"/>
+  <text class="tb" x="73" y="577" text-anchor="middle">mould · insect</text>
+  <text class="s" x="73" y="597" text-anchor="middle">shown, not in MD</text>
+</svg>

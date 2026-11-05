@@ -39,6 +39,9 @@ refuses a mismatch, because macro-F1 does not show it.
 
 ## Layout
 
+See `docs/architecture.md` for how a photo moves through the code, which
+modules depend on which, and how the two models are trained.
+
 - `src/physics/` — deterioration model. Pure arithmetic over published
   constants, no learned parameters, no dependency on the vision pipeline.
 - `tests/` — each test pins a specific way the model can be silently wrong.

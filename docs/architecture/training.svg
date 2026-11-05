@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 548" width="1000" height="548" role="img" aria-label="Two training chains. Classifier: GrainSet and Corn Seeds, split by capture session, train classifier.session.pt, which is fine-tuned on hand-checked phone crops and GrainSet tray crops into classifier-real2.final.pt. Localiser: synthetic trays train localiser.pt, which auto-labels 50 phone trays and is fine-tuned on them into localiser-real.pt, which is fine-tuned again on kernels pasted onto other surfaces into localiser-bg2.pt. The app loads classifier-real2.final.pt and localiser-bg2.pt.">
+  <title>How stored-grain's two models are trained</title>
+  <style>
+    text { font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    .bg { fill: #f3efe3; }
+    .box { fill: #fffcf4; stroke: rgba(28, 35, 24, 0.30); stroke-width: 1.2; }
+    .trainbox { fill: #e6efe3; stroke: #2f7a45; stroke-width: 1.2; }
+    .weights { fill: #fffcf4; stroke: #2f7a45; stroke-width: 1.4; stroke-dasharray: 5 4; }
+    .final { fill: #f3e6c2; stroke: #9a6a00; stroke-width: 2; }
+    .t { fill: #1c2318; font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12.5px; font-weight: 600; }
+    .tb { fill: #1c2318; font-size: 13px; font-weight: 600; }
+    .s { fill: #59634f; font-size: 11.5px; }
+    .lane { fill: #59634f; font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; }
+    .lbl { fill: #2f7a45; font-size: 11.5px; font-weight: 600; }
+    .line { stroke: #2f7a45; stroke-width: 1.6; fill: none; }
+  </style>
+  <defs>
+    <marker id="ht" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2f7a45"/></marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1000" height="548" rx="14"/>
+
+  <text class="lane" x="20" y="24">CLASSIFIER</text>
+  <!-- A1 -->
+  <rect class="box" x="20" y="34" width="180" height="62" rx="8"/>
+  <text class="tb" x="110" y="60" text-anchor="middle">GrainSet + Corn Seeds</text>
+  <text class="s" x="110" y="80" text-anchor="middle">single-kernel photos</text>
+  <rect class="box" x="260" y="34" width="190" height="62" rx="8"/>
+  <text class="t" x="355" y="60" text-anchor="middle">data/manifest.py</text>
+  <text class="s" x="355" y="80" text-anchor="middle">split by capture session</text>
+  <rect class="box" x="510" y="34" width="190" height="62" rx="8"/>
+  <text class="t" x="605" y="60" text-anchor="middle">vision/train.py</text>
+  <text class="s" x="605" y="80" text-anchor="middle">ResNet-50 · macro-F1</text>
+  <rect class="weights" x="770" y="34" width="210" height="62" rx="8"/>
+  <text class="t" x="875" y="60" text-anchor="middle">classifier.session.pt</text>
+  <text class="s" x="875" y="80" text-anchor="middle">public data only</text>
+  <line class="line" x1="200" y1="65" x2="257" y2="65" marker-end="url(#ht)"/>
+  <line class="line" x1="450" y1="65" x2="507" y2="65" marker-end="url(#ht)"/>
+  <line class="line" x1="700" y1="65" x2="767" y2="65" marker-end="url(#ht)"/>
+  <!-- A2 -->
+  <rect class="trainbox" x="20" y="140" width="430" height="62" rx="8"/>
+  <text class="tb" x="235" y="166" text-anchor="middle">Phone crops + GrainSet tray crops</text>
+  <text class="s" x="235" y="186" text-anchor="middle">real_photo_baseline.py (hand-checked popcorn) · grainset_tray_crops.py</text>
+  <rect class="trainbox" x="510" y="140" width="190" height="62" rx="8"/>
+  <text class="t" x="605" y="166" text-anchor="middle">finetune_real.py</text>
+  <text class="s" x="605" y="186" text-anchor="middle">two-fold batch swap</text>
+  <rect class="final" x="770" y="140" width="210" height="62" rx="8"/>
+  <text class="t" x="875" y="166" text-anchor="middle">classifier-real2.final.pt</text>
+  <text class="s" x="875" y="186" text-anchor="middle">loaded by the app</text>
+  <line class="line" x1="450" y1="171" x2="507" y2="171" marker-end="url(#ht)"/>
+  <line class="line" x1="700" y1="171" x2="767" y2="171" marker-end="url(#ht)"/>
+  <polyline class="line" points="875,96 875,118 605,118 605,137" marker-end="url(#ht)"/>
+  <text class="lbl" x="740" y="113" text-anchor="middle">starts from</text>
+
+  <text class="lane" x="20" y="244">LOCALISER (U-NET)</text>
+  <!-- B1 -->
+  <rect class="box" x="20" y="254" width="180" height="62" rx="8"/>
+  <text class="tb" x="110" y="280" text-anchor="middle">GrainSet cutouts</text>
+  <text class="s" x="110" y="300" text-anchor="middle">kernels with exact masks</text>
+  <rect class="box" x="260" y="254" width="190" height="62" rx="8"/>
+  <text class="t" x="355" y="280" text-anchor="middle">vision/synth.py</text>
+  <text class="s" x="355" y="300" text-anchor="middle">fake trays on a dark card</text>
+  <rect class="box" x="510" y="254" width="190" height="62" rx="8"/>
+  <text class="t" x="605" y="280" text-anchor="middle">train_localiser.py</text>
+  <text class="s" x="605" y="300" text-anchor="middle">synthetic scenes · 384-px crops</text>
+  <rect class="weights" x="770" y="254" width="210" height="62" rx="8"/>
+  <text class="t" x="875" y="280" text-anchor="middle">localiser.pt</text>
+  <text class="s" x="875" y="300" text-anchor="middle">synthetic only</text>
+  <line class="line" x1="200" y1="285" x2="257" y2="285" marker-end="url(#ht)"/>
+  <line class="line" x1="450" y1="285" x2="507" y2="285" marker-end="url(#ht)"/>
+  <line class="line" x1="700" y1="285" x2="767" y2="285" marker-end="url(#ht)"/>
+  <!-- B2 -->
+  <rect class="box" x="20" y="360" width="180" height="62" rx="8"/>
+  <text class="tb" x="110" y="386" text-anchor="middle">50 phone trays</text>
+  <text class="s" x="110" y="406" text-anchor="middle">250 shots · black card</text>
+  <rect class="trainbox" x="260" y="360" width="190" height="62" rx="8"/>
+  <text class="t" x="355" y="386" text-anchor="middle">vision/real_labels.py</text>
+  <text class="s" x="355" y="406" text-anchor="middle">card threshold + U-Net</text>
+  <rect class="trainbox" x="510" y="360" width="190" height="62" rx="8"/>
+  <text class="t" x="605" y="386" text-anchor="middle">train_localiser --real</text>
+  <text class="s" x="605" y="406" text-anchor="middle">split by tray</text>
+  <rect class="weights" x="770" y="360" width="210" height="62" rx="8"/>
+  <text class="t" x="875" y="386" text-anchor="middle">localiser-real.pt</text>
+  <text class="s" x="875" y="406" text-anchor="middle">black card only</text>
+  <line class="line" x1="200" y1="391" x2="257" y2="391" marker-end="url(#ht)"/>
+  <line class="line" x1="450" y1="391" x2="507" y2="391" marker-end="url(#ht)"/>
+  <line class="line" x1="700" y1="391" x2="767" y2="391" marker-end="url(#ht)"/>
+  <polyline class="line" points="875,316 875,338 355,338 355,357" marker-end="url(#ht)"/>
+  <line class="line" x1="605" y1="338" x2="605" y2="357" marker-end="url(#ht)"/>
+  <text class="lbl" x="740" y="333" text-anchor="middle">labels with · fine-tunes from</text>
+  <!-- B3 -->
+  <rect class="trainbox" x="20" y="466" width="430" height="62" rx="8"/>
+  <text class="tb" x="235" y="492" text-anchor="middle">Kernels pasted onto other surfaces</text>
+  <text class="s" x="235" y="512" text-anchor="middle">vision/backgrounds.py · Poly Haven textures · relit · 0.35–2.2× size</text>
+  <rect class="trainbox" x="510" y="466" width="190" height="62" rx="8"/>
+  <text class="t" x="605" y="492" text-anchor="middle">train_localiser.py</text>
+  <text class="s" x="605" y="512" text-anchor="middle">unseen surfaces held out</text>
+  <rect class="final" x="770" y="466" width="210" height="62" rx="8"/>
+  <text class="t" x="875" y="492" text-anchor="middle">localiser-bg2.pt</text>
+  <text class="s" x="875" y="512" text-anchor="middle">loaded by the app</text>
+  <line class="line" x1="450" y1="497" x2="507" y2="497" marker-end="url(#ht)"/>
+  <line class="line" x1="700" y1="497" x2="767" y2="497" marker-end="url(#ht)"/>
+  <line class="line" x1="355" y1="422" x2="355" y2="463" marker-end="url(#ht)"/>
+  <text class="lbl" x="367" y="447">labelled kernels</text>
+  <polyline class="line" points="875,422 875,444 605,444 605,463" marker-end="url(#ht)"/>
+  <text class="lbl" x="740" y="439" text-anchor="middle">fine-tunes from</text>
+</svg>
