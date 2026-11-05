@@ -35,7 +35,7 @@ def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--grainset", default="data/raw/grainset/maize")
     p.add_argument("--localiser", default="models/localiser-bg2.pt")
-    p.add_argument("--classifier", default="models/classifier.session.pt")
+    p.add_argument("--classifier", default="models/classifier-real2.final.pt")
     p.add_argument("--out", default="data/interim/validation")
     p.add_argument("--kernels", type=int, default=200)
     p.add_argument("--pool", type=int, default=400)

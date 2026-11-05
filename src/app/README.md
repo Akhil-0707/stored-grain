@@ -13,7 +13,9 @@ Start it from `stored-grain/`: the model checkpoints are loaded from
 localiser fine-tuned on real phone photos of trays, then on real and GrainSet
 kernels pasted onto other surfaces, under uneven light and at 0.35x to 2.2x
 their size; see `src/vision/backgrounds.py`) and
-`classifier.session.pt`. On macOS/Linux the interpreter is `.venv/bin/python`
+`classifier-real2.final.pt` (the kernel classifier fine-tuned on hand-checked
+S24 Ultra photos of sound, cracked and broken popcorn plus GrainSet kernels cut
+from synthetic trays; see `experiments/finetune_real.py`). On macOS/Linux the interpreter is `.venv/bin/python`
 instead.
 
 `--host 0.0.0.0` is what makes the phone able to reach it. Find the laptop's

@@ -66,7 +66,7 @@ def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--grainset", default="data/raw/grainset/maize")
     p.add_argument("--cornseeds", default="data/raw/kaggle/cornseeds/corn")
-    p.add_argument("--classifier", default="models/classifier.session.pt")
+    p.add_argument("--classifier", default="models/classifier-real2.final.pt")
     p.add_argument("--out", default="models/calibration-perkernel.json")
     p.add_argument("--batch-size", type=int, default=64)
     p.add_argument("--size", type=int, default=224)

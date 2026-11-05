@@ -252,7 +252,7 @@ class Pipeline:
     def __init__(
         self,
         localiser_checkpoint: str | Path = "models/localiser-bg2.pt",
-        classifier_checkpoint: str | Path = "models/classifier.session.pt",
+        classifier_checkpoint: str | Path = "models/classifier-real2.final.pt",
         device: torch.device | None = None,
         batch_size: int = 128,
         calibration: DamageCalibration | str | Path | None = None,
